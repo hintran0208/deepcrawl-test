@@ -65,8 +65,11 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch --all --tags
+          git checkout develop
+          git pull origin develop
           ./.github/bin/github-registry-auth.sh
-          yarn lerna publish --no-commit-hooks --conventional-graduate --include-merged-tags --yes
+          yarn lerna publish --no-commit-hooks --conventional-graduate --include-merged-tags --yes --force-publish
         env:
           GH_TOKEN: ${{ secrets.PUBLISH_BOT_TOKEN }}
           GIT_REGISTRY_TOKEN: ${{ secrets.PUBLISH_BOT_TOKEN }}
