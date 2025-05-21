@@ -91,8 +91,20 @@ jobs:
         with:
           path: packages/test-cli
 
-      - name: Upload @deepcrawl/test-cli assets to release
-        run: gh release upload v${{ steps.package-version.outputs.current-version }} ./dist/deepcrawl-test-linux ./dist/deepcrawl-test-macos ./dist/deepcrawl-test-win.exe
+      - name: Create and upload release
+        run: |
+          # Create release if it doesn't exist
+          gh release create v${{ steps.package-version.outputs.current-version }} \
+            --title "Release v${{ steps.package-version.outputs.current-version }}" \
+            --notes "Release v${{ steps.package-version.outputs.current-version }}" \
+            --target develop || true
+
+          # Upload assets
+          gh release upload v${{ steps.package-version.outputs.current-version }} \
+            ./dist/deepcrawl-test-linux \
+            ./dist/deepcrawl-test-macos \
+            ./dist/deepcrawl-test-win.exe \
+            --clobber
         working-directory: packages/test-cli
         env:
           GH_TOKEN: ${{ secrets.PUBLISH_BOT_TOKEN }}
