@@ -67,16 +67,14 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # Set up git for publishing
           git remote set-url origin https://$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git
-          git fetch --unshallow --tags
-          # Get the latest tag that triggered this workflow
-          CURRENT_TAG=$(git describe --tags --abbrev=0)
-          # Get the previous tag for comparison
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^)
-          # Check if PREVIOUS_TAG exists, if not use first commit
-          if [ -z "$PREVIOUS_TAG" ]; then
-            PREVIOUS_TAG=$(git rev-list --max-parents=0 HEAD)
-          fi
-          export BASE_REF=$PREVIOUS_TAG
+          git fetch --tags origin develop
+          # Ensure we're on the correct branch with latest changes
+          git checkout develop
+          git pull origin develop
+          # Get the tag that triggered this workflow
+          TAG_REF=${{ github.ref }}
+          TAG_NAME=${TAG_REF#refs/tags/}
+          echo "Publishing from tag: $TAG_NAME"
           ./.github/bin/github-registry-auth.sh
           yarn lerna publish from-git --yes
         env:
