@@ -65,11 +65,20 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch --all --tags
-          git checkout develop
-          git pull origin develop
+          # Set up git for publishing
+          git remote set-url origin https://$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git
+          git fetch --unshallow --tags
+          # Get the latest tag that triggered this workflow
+          CURRENT_TAG=$(git describe --tags --abbrev=0)
+          # Get the previous tag for comparison
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^)
+          # Check if PREVIOUS_TAG exists, if not use first commit
+          if [ -z "$PREVIOUS_TAG" ]; then
+            PREVIOUS_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+          export BASE_REF=$PREVIOUS_TAG
           ./.github/bin/github-registry-auth.sh
-          yarn lerna publish --no-commit-hooks --conventional-graduate --include-merged-tags --yes --force-publish
+          yarn lerna publish from-git --yes
         env:
           GH_TOKEN: ${{ secrets.PUBLISH_BOT_TOKEN }}
           GIT_REGISTRY_TOKEN: ${{ secrets.PUBLISH_BOT_TOKEN }}
